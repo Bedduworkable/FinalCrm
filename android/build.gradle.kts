@@ -1,4 +1,6 @@
 buildscript {
+    val kotlinVersion = "1.8.10"
+
     repositories {
         google()
         mavenCentral()
@@ -6,7 +8,7 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:8.3.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.google.gms:google-services:4.4.0")
     }
 }

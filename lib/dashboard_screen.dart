@@ -204,6 +204,46 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ],
                 ),
               ),
+              // Follow-ups Button with Badge
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FollowUpsScreen()),
+                  );
+                },
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.schedule_rounded, color: Colors.white, size: 28),
+                    if (_activeFollowUpsCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$_activeFollowUpsCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              // Filters Button
               IconButton(
                 onPressed: _toggleFilters,
                 icon: AnimatedRotation(
@@ -212,6 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   child: const Icon(Icons.tune_rounded, color: Colors.white, size: 28),
                 ),
               ),
+              // Settings Button
               IconButton(
                 onPressed: () {
                   Navigator.push(

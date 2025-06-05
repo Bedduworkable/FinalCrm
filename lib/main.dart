@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'firebase_options.dart';
 import 'auth_service.dart';
 import 'dashboard_screen.dart';
+import 'notification_service.dart';
+import 'followups_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize timezone data for scheduled notifications
+  tz.initializeTimeZones();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const RealEstateCRM());
 }
@@ -56,6 +64,10 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          // Initialize notification service when user is authenticated
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            NotificationService.initialize(context);
+          });
           return const DashboardScreen();
         }
         return const LoginScreen();
