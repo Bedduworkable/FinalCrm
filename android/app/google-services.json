@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "610422771231",
+    "project_id": "igplrealestatecrm",
+    "storage_bucket": "igplrealestatecrm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:610422771231:android:7a1eab40aeacbde39dcf2a",
+        "android_client_info": {
+          "package_name": "com.company.igpl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlJht1Zs4rqticFvkd3PrPz5oIggQtSFg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
