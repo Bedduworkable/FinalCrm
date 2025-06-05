@@ -212,75 +212,16 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> with TickerProvider
 
     if (!mounted) return;
 
-    // Step 3: Get Title and Description
-    final titleController = TextEditingController(text: 'Follow-up call');
-    final descriptionController = TextEditingController();
-
+    // Step 3: Get Title and Description using a StatefulWidget dialog
     final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Schedule Follow-up'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title *',
-                  hintText: 'e.g., Call about property visit',
-                  border: OutlineInputBorder(),
-                ),
-                autofocus: true,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Optional)',
-                  hintText: 'Additional details...',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.trim().isNotEmpty) {
-                Navigator.pop(context, {
-                  'title': titleController.text.trim(),
-                  'description': descriptionController.text.trim(),
-                });
-              } else {
-                // Don't use ScaffoldMessenger inside dialog - just return
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Schedule'),
-          ),
-        ],
-      ),
+      builder: (context) => _FollowUpDialog(),
     );
 
-    // Clean up controllers immediately
-    final title = result?['title'];
-    final description = result?['description'];
-    titleController.dispose();
-    descriptionController.dispose();
+    if (result != null && result['title']?.isNotEmpty == true && mounted) {
+      final title = result['title']!;
+      final description = result['description'];
 
-    if (title != null && title.isNotEmpty && mounted) {
       // Step 4: Create Follow-up
       try {
         print('Creating follow-up with title: $title');
@@ -296,7 +237,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> with TickerProvider
           userId: AuthService.currentUserId!,
         );
 
-        // Create follow-up and immediately wait for completion
+        // Create follow-up
         await DatabaseService.createFollowUp(followUp);
         print('Follow-up created successfully');
 
@@ -304,33 +245,25 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> with TickerProvider
         if (mounted) {
           HapticFeedback.heavyImpact();
 
-          // Use post frame callback to ensure UI is ready
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Follow-up scheduled for ${_formatDateTime(scheduledDateTime)}'),
-                  backgroundColor: const Color(0xFF84D187),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            }
-          });
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Follow-up scheduled for ${_formatDateTime(scheduledDateTime)}'),
+              backgroundColor: const Color(0xFF84D187),
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
       } catch (e) {
         print('Error creating follow-up: $e');
         if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error scheduling follow-up: ${e.toString()}'),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
-          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error scheduling follow-up: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       }
     }
@@ -925,5 +858,85 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> with TickerProvider
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year} $timeString';
     }
+  }
+}
+
+// Separate StatefulWidget dialog for follow-up creation
+class _FollowUpDialog extends StatefulWidget {
+  @override
+  _FollowUpDialogState createState() => _FollowUpDialogState();
+}
+
+class _FollowUpDialogState extends State<_FollowUpDialog> {
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: 'Follow-up call');
+    _descriptionController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Schedule Follow-up'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title *',
+                hintText: 'e.g., Call about property visit',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description (Optional)',
+                hintText: 'Additional details...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_titleController.text.trim().isNotEmpty) {
+              Navigator.pop(context, {
+                'title': _titleController.text.trim(),
+                'description': _descriptionController.text.trim(),
+              });
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6C5CE7),
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Schedule'),
+        ),
+      ],
+    );
   }
 }
