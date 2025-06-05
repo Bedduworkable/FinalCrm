@@ -26,12 +26,14 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
   // Premium color palette
   static const Color primaryBlue = Color(0xFF10187B);
   static const Color accentGold = Color(0xFFFFD700);
-  static const Color lightGrey = Color(0xFFF8F9FB);
-  static const Color softWhite = Color(0xFFFFFFFE);
-  static const Color lightViolet = Color(0xFFF5F6FF);
+  static const Color backgroundLight = Color(0xFFFBFBFD);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color creamBackground = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1D29);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color borderLight = Color(0xFFE5E7EB);
+  static const Color textSecondary = Color(0xFF6B7080);
+  static const Color textTertiary = Color(0xFF9CA3AF);
+  static const Color borderLight = Color(0xFFF1F3F4);
+  static const Color accentLavender = Color(0xFFF8F9FF);
 
   @override
   void initState() {
@@ -133,20 +135,21 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
         final shouldReplace = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            backgroundColor: softWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: cardWhite,
             title: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: accentGold.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Icon(Icons.warning_amber_rounded, color: accentGold, size: 18),
+                  child: Icon(Icons.warning_amber_rounded, color: accentGold, size: 16),
                 ),
                 const SizedBox(width: 12),
-                const Text('Existing Follow-up', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary)),
+                const Text('Existing Follow-up',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textPrimary)),
               ],
             ),
             content: const Text(
@@ -156,15 +159,14 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel', style: TextStyle(color: textSecondary)),
+                child: const Text('Cancel', style: TextStyle(color: textSecondary, fontSize: 14)),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
+                style: TextButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
                 child: const Text('Replace', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
@@ -300,20 +302,21 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
     final newStatus = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: softWhite,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: cardWhite,
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: primaryBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
               ),
-              child: const Icon(Icons.swap_horiz_rounded, color: primaryBlue, size: 18),
+              child: Icon(Icons.swap_horiz_rounded, color: primaryBlue, size: 16),
             ),
             const SizedBox(width: 12),
-            const Text('Change Status', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary)),
+            const Text('Change Status',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textPrimary)),
           ],
         ),
         content: Column(
@@ -323,29 +326,29 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
             final color = _getStatusColor(status);
 
             return Container(
-              margin: const EdgeInsets.only(bottom: 6),
+              margin: const EdgeInsets.only(bottom: 4),
               child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                 title: Text(
                   status,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                     color: isSelected ? color : textPrimary,
                   ),
                 ),
                 leading: Container(
-                  width: 12,
-                  height: 12,
+                  width: 8,
+                  height: 8,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
                   ),
                 ),
-                trailing: isSelected ? Icon(Icons.check_circle, color: color, size: 18) : null,
+                trailing: isSelected ? Icon(Icons.check_circle, color: color, size: 16) : null,
                 selected: isSelected,
-                selectedTileColor: color.withOpacity(0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                selectedTileColor: color.withOpacity(0.04),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 onTap: isSelected ? null : () => Navigator.pop(context, status),
               ),
             );
@@ -403,7 +406,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: lightGrey,
+      backgroundColor: backgroundLight,
       body: Column(
         children: [
           _buildHeader(),
@@ -416,221 +419,168 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 12,
-        left: 20,
-        right: 20,
-        bottom: 20,
-      ),
       decoration: const BoxDecoration(
-        color: softWhite,
-        border: Border(bottom: BorderSide(color: borderLight, width: 0.5)),
+        color: cardWhite,
+        border: Border(bottom: BorderSide(color: borderLight, width: 1)),
       ),
       child: Column(
         children: [
-          // Navigation and actions row
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: lightGrey,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: textPrimary),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-              const Spacer(),
-              PopupMenuButton(
-                icon: Container(
-                  width: 36,
-                  height: 36,
+          // Navigation row
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 20,
+              right: 20,
+              bottom: 8,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: lightGrey,
-                    borderRadius: BorderRadius.circular(10),
+                    color: backgroundLight,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.more_horiz, size: 18, color: textPrimary),
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 14, color: textPrimary),
+                    padding: EdgeInsets.zero,
+                  ),
                 ),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'status',
-                    child: Row(
-                      children: [
-                        Icon(Icons.swap_horiz_rounded, color: primaryBlue, size: 16),
-                        const SizedBox(width: 8),
-                        Text('Change Status', style: TextStyle(fontSize: 13, color: textPrimary)),
-                      ],
+                const Spacer(),
+              ],
+            ),
+          ),
+
+          // Profile section with cream background
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+            decoration: const BoxDecoration(
+              color: creamBackground,
+            ),
+            child: Column(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: primaryBlue,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(
+                          widget.lead.name.isNotEmpty ? widget.lead.name[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: 'whatsapp',
-                    child: Row(
-                      children: [
-                        Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 16),
-                        const SizedBox(width: 8),
-                        Text('WhatsApp', style: TextStyle(fontSize: 13, color: textPrimary)),
-                      ],
-                    ),
-                  ),
-                  if (widget.lead.email.isNotEmpty)
-                    PopupMenuItem(
-                      value: 'email',
-                      child: Row(
+                    const SizedBox(width: 16),
+
+                    // Name, phone, status
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.email_rounded, color: Color(0xFF1976D2), size: 16),
-                          const SizedBox(width: 8),
-                          Text('Send Email', style: TextStyle(fontSize: 13, color: textPrimary)),
+                          Text(
+                            widget.lead.name,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                              color: textPrimary,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          if (widget.lead.mobile.isNotEmpty)
+                            Text(
+                              widget.lead.mobile,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: textSecondary,
+                                height: 1.3,
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              StreamBuilder<DocumentSnapshot>(
+                                stream: _firestore.collection('leads')
+                                    .doc(widget.lead.id)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                                    return _buildStatusChip(widget.lead.status);
+                                  }
+                                  final leadData = snapshot.data!.data() as Map<String, dynamic>;
+                                  final currentLead = Lead.fromMap(leadData, snapshot.data!.id);
+                                  return _buildStatusChip(currentLead.status);
+                                },
+                              ),
+                              const SizedBox(width: 6),
+                              // Tags in same row
+                              Expanded(
+                                child: Wrap(
+                                  spacing: 6,
+                                  children: [
+                                    ...widget.lead.projects.take(2).map((project) => _buildTag(project, primaryBlue)),
+                                    ...widget.lead.sources.take(1).map((source) => _buildTag(source, const Color(0xFF059669))),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
-                ],
-                onSelected: (value) {
-                  switch (value) {
-                    case 'status':
-                      _changeStatus();
-                      break;
-                    case 'whatsapp':
-                      _openWhatsApp();
-                      break;
-                    case 'email':
-                      _sendEmail();
-                      break;
-                  }
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Profile section
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Avatar
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: primaryBlue,
-                  borderRadius: BorderRadius.circular(12),
+                  ],
                 ),
-                child: Center(
-                  child: Text(
-                    widget.lead.name.isNotEmpty ? widget.lead.name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
 
-              // Name, phone, status
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Action buttons
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    Text(
-                      widget.lead.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: textPrimary,
-                        height: 1.2,
+                    Expanded(
+                      child: _buildActionButton(
+                        icon: Icons.phone,
+                        label: 'Call',
+                        onTap: _makePhoneCall,
+                        color: primaryBlue,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    if (widget.lead.mobile.isNotEmpty)
-                      Text(
-                        widget.lead.mobile,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: textSecondary,
-                          height: 1.3,
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildActionButton(
+                        icon: Icons.chat,
+                        label: 'WhatsApp',
+                        onTap: _openWhatsApp,
+                        color: const Color(0xFF25D366),
                       ),
-                    const SizedBox(height: 8),
-                    StreamBuilder<DocumentSnapshot>(
-                      stream: _firestore.collection('leads')
-                          .doc(widget.lead.id)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData || !snapshot.data!.exists) {
-                          return _buildStatusChip(widget.lead.status);
-                        }
-                        final leadData = snapshot.data!.data() as Map<String, dynamic>;
-                        final currentLead = Lead.fromMap(leadData, snapshot.data!.id);
-                        return _buildStatusChip(currentLead.status);
-                      },
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildActionButton(
+                        icon: Icons.schedule,
+                        label: 'Schedule',
+                        onTap: _scheduleFollowUp,
+                        color: accentGold,
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-
-          // Action buttons
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionButton(
-                  icon: Icons.phone,
-                  label: 'Call',
-                  onTap: _makePhoneCall,
-                  color: primaryBlue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionButton(
-                  icon: Icons.chat,
-                  label: 'WhatsApp',
-                  onTap: _openWhatsApp,
-                  color: const Color(0xFF25D366),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionButton(
-                  icon: Icons.schedule,
-                  label: 'Schedule',
-                  onTap: _scheduleFollowUp,
-                  color: accentGold,
-                ),
-              ),
-            ],
-          ),
-
-          // Tags section
-          if (widget.lead.projects.isNotEmpty || widget.lead.sources.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: lightViolet,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: borderLight, width: 0.5),
-              ),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ...widget.lead.projects.map((project) => _buildTag(project, primaryBlue, 'Project')),
-                  ...widget.lead.sources.map((source) => _buildTag(source, const Color(0xFF059669), 'Source')),
-                ],
-              ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -639,30 +589,30 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
   Widget _buildStatusChip(String status) {
     final color = _getStatusColor(status);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.15), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 6,
-            height: 6,
+            width: 4,
+            height: 4,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             status,
             style: TextStyle(
               color: color,
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -682,22 +632,22 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.12), width: 0.5),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(height: 4),
+            Icon(icon, color: color, size: 16),
+            const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
                 color: color,
                 fontSize: 11,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
@@ -706,35 +656,21 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
     );
   }
 
-  Widget _buildTag(String text, Color color, String type) {
+  Widget _buildTag(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.12), width: 0.5),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            type,
-            style: TextStyle(
-              color: color.withOpacity(0.7),
-              fontSize: 9,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w400,
+        ),
       ),
     );
   }
@@ -746,8 +682,8 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: SizedBox(
-              width: 20,
-              height: 20,
+              width: 16,
+              height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(primaryBlue),
@@ -762,29 +698,29 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDC2626).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(0xFFDC2626).withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.error_outline, size: 32, color: Color(0xFFDC2626)),
+                  child: const Icon(Icons.error_outline, size: 24, color: Color(0xFFDC2626)),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
                   'Error loading conversation',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textPrimary),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: textPrimary),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${snapshot.error}',
-                  style: TextStyle(fontSize: 12, color: textSecondary),
+                  style: TextStyle(fontSize: 11, color: textSecondary),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextButton.icon(
                   onPressed: () => setState(() {}),
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('Retry', style: TextStyle(fontSize: 12)),
+                  icon: const Icon(Icons.refresh, size: 14),
+                  label: const Text('Retry', style: TextStyle(fontSize: 11)),
                   style: TextButton.styleFrom(foregroundColor: primaryBlue),
                 ),
               ],
@@ -800,31 +736,31 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: primaryBlue.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(20),
+                    color: primaryBlue.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.chat_bubble_outline,
-                    size: 28,
+                    size: 22,
                     color: primaryBlue,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Text(
                   'Start the conversation',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     color: textPrimary,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Add your first remark to begin tracking\ninteractions with this lead',
-                  style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+                  style: TextStyle(fontSize: 12, color: textSecondary, height: 1.4),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -854,7 +790,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
     final isSystemMessage = remark.type.isSystemGenerated;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: isSystemMessage
             ? CrossAxisAlignment.center
@@ -862,35 +798,35 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
         children: [
           if (isSystemMessage)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               margin: const EdgeInsets.symmetric(horizontal: 40),
               decoration: BoxDecoration(
-                color: lightViolet,
-                borderRadius: BorderRadius.circular(16),
+                color: accentLavender,
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: borderLight, width: 0.5),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(3),
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: textSecondary.withOpacity(0.1),
+                      color: textTertiary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       _getRemarkIcon(remark.type),
-                      size: 10,
-                      color: textSecondary,
+                      size: 8,
+                      color: textTertiary,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       remark.content,
                       style: const TextStyle(
-                        fontSize: 11,
-                        color: textSecondary,
+                        fontSize: 10,
+                        color: textTertiary,
                         fontWeight: FontWeight.w400,
                         height: 1.3,
                       ),
@@ -905,19 +841,19 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.8,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: primaryBlue,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(18),
-                  topRight: Radius.circular(18),
-                  bottomLeft: Radius.circular(18),
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(4),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryBlue.withOpacity(0.15),
-                    blurRadius: 8,
+                    color: primaryBlue.withOpacity(0.08),
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -926,27 +862,27 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
                 remark.content,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w400,
                   height: 1.4,
                 ),
               ),
             ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: isSystemMessage ? MainAxisAlignment.center : MainAxisAlignment.end,
             children: [
               Icon(
                 Icons.access_time,
-                size: 10,
-                color: textSecondary.withOpacity(0.6),
+                size: 8,
+                color: textTertiary.withOpacity(0.7),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Text(
                 _formatMessageTime(remark.createdAt),
                 style: TextStyle(
-                  fontSize: 10,
-                  color: textSecondary.withOpacity(0.8),
+                  fontSize: 9,
+                  color: textTertiary.withOpacity(0.8),
                   fontWeight: FontWeight.w300,
                 ),
               ),
@@ -976,14 +912,14 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
       decoration: BoxDecoration(
-        color: softWhite,
-        border: const Border(top: BorderSide(color: borderLight, width: 0.5)),
+        color: cardWhite,
+        border: const Border(top: BorderSide(color: borderLight, width: 1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, -2),
           ),
         ],
@@ -992,65 +928,38 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
         child: Column(
           children: [
             if (_showQuickActions) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: lightViolet,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: borderLight, width: 0.5),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.flash_on, color: textSecondary, size: 14),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Quick Actions',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      icon: Icons.schedule,
+                      label: 'Schedule Follow-up',
+                      color: primaryBlue,
+                      onTap: _scheduleFollowUp,
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickActionButton(
-                            icon: Icons.schedule,
-                            label: 'Schedule Follow-up',
-                            color: primaryBlue,
-                            onTap: _scheduleFollowUp,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildQuickActionButton(
-                            icon: Icons.swap_horiz,
-                            label: 'Change Status',
-                            color: const Color(0xFF059669),
-                            onTap: _changeStatus,
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      icon: Icons.swap_horiz,
+                      label: 'Change Status',
+                      color: const Color(0xFF059669),
+                      onTap: _changeStatus,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
             ],
             Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: _showQuickActions ? primaryBlue : lightGrey,
-                    borderRadius: BorderRadius.circular(10),
+                    color: _showQuickActions ? primaryBlue : backgroundLight,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: IconButton(
                     onPressed: () {
@@ -1062,17 +971,17 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
                     icon: Icon(
                       _showQuickActions ? Icons.close : Icons.add,
                       color: _showQuickActions ? Colors.white : textSecondary,
-                      size: 16,
+                      size: 14,
                     ),
                     padding: EdgeInsets.zero,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: lightGrey,
-                      borderRadius: BorderRadius.circular(20),
+                      color: backgroundLight,
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: borderLight, width: 0.5),
                     ),
                     child: TextField(
@@ -1080,20 +989,20 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
                       decoration: const InputDecoration(
                         hintText: 'Add a remark...',
                         hintStyle: TextStyle(
-                          color: textSecondary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
+                          color: textTertiary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                          horizontal: 14,
+                          vertical: 8,
                         ),
                       ),
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: textPrimary,
                         height: 1.4,
@@ -1101,17 +1010,17 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: primaryBlue,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: primaryBlue.withOpacity(0.2),
-                        blurRadius: 6,
+                        color: primaryBlue.withOpacity(0.15),
+                        blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -1119,12 +1028,12 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       onTap: _addRemark,
                       child: const Icon(
                         Icons.send,
                         color: Colors.white,
-                        size: 16,
+                        size: 14,
                       ),
                     ),
                   ),
@@ -1151,9 +1060,9 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withOpacity(0.05),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+          border: Border.all(color: color.withOpacity(0.12), width: 0.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1165,7 +1074,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
                 label,
                 style: TextStyle(
                   color: color,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
                   fontSize: 11,
                 ),
                 textAlign: TextAlign.center,
@@ -1207,11 +1116,11 @@ class _FollowUpDialogState extends State<_FollowUpDialog> {
   // Premium color palette
   static const Color primaryBlue = Color(0xFF10187B);
   static const Color accentGold = Color(0xFFFFD700);
-  static const Color lightGrey = Color(0xFFF8F9FB);
-  static const Color softWhite = Color(0xFFFFFFFE);
+  static const Color backgroundLight = Color(0xFF10187B);
+  static const Color cardWhite = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1D29);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color borderLight = Color(0xFFE5E7EB);
+  static const Color textSecondary = Color(0xFF6B7080);
+  static const Color borderLight = Color(0xFFF1F3F4);
 
   @override
   void initState() {
@@ -1230,24 +1139,24 @@ class _FollowUpDialogState extends State<_FollowUpDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: softWhite,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: cardWhite,
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: primaryBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(Icons.schedule, color: primaryBlue, size: 18),
+            child: const Icon(Icons.schedule, color: primaryBlue, size: 16),
           ),
           const SizedBox(width: 12),
           const Text(
             'Schedule Follow-up',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: textPrimary,
             ),
           ),
@@ -1261,53 +1170,53 @@ class _FollowUpDialogState extends State<_FollowUpDialog> {
               controller: _titleController,
               decoration: InputDecoration(
                 labelText: 'Title *',
-                labelStyle: const TextStyle(fontSize: 13, color: textSecondary),
+                labelStyle: const TextStyle(fontSize: 12, color: textSecondary),
                 hintText: 'e.g., Call about property visit',
-                hintStyle: const TextStyle(fontSize: 13, color: textSecondary),
+                hintStyle: const TextStyle(fontSize: 12, color: textSecondary),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: borderLight, width: 0.5),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: borderLight, width: 0.5),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: primaryBlue, width: 1),
                 ),
                 filled: true,
-                fillColor: lightGrey,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                fillColor: backgroundLight,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-              style: const TextStyle(fontSize: 14, color: textPrimary),
+              style: const TextStyle(fontSize: 13, color: textPrimary),
               autofocus: true,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             TextField(
               controller: _descriptionController,
               decoration: InputDecoration(
                 labelText: 'Description (Optional)',
-                labelStyle: const TextStyle(fontSize: 13, color: textSecondary),
+                labelStyle: const TextStyle(fontSize: 12, color: textSecondary),
                 hintText: 'Additional details...',
-                hintStyle: const TextStyle(fontSize: 13, color: textSecondary),
+                hintStyle: const TextStyle(fontSize: 12, color: textSecondary),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: borderLight, width: 0.5),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: borderLight, width: 0.5),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: primaryBlue, width: 1),
                 ),
                 filled: true,
-                fillColor: lightGrey,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                fillColor: backgroundLight,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-              style: const TextStyle(fontSize: 14, color: textPrimary),
+              style: const TextStyle(fontSize: 13, color: textPrimary),
               maxLines: 3,
             ),
           ],
@@ -1318,10 +1227,10 @@ class _FollowUpDialogState extends State<_FollowUpDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: textSecondary, fontSize: 14),
+            style: TextStyle(color: textSecondary, fontSize: 13),
           ),
         ),
-        ElevatedButton(
+        TextButton(
           onPressed: () {
             if (_titleController.text.trim().isNotEmpty) {
               Navigator.pop(context, {
@@ -1330,18 +1239,18 @@ class _FollowUpDialogState extends State<_FollowUpDialog> {
               });
             }
           },
-          style: ElevatedButton.styleFrom(
+          style: TextButton.styleFrom(
             backgroundColor: primaryBlue,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           ),
           child: const Text(
             'Schedule',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
           ),
         ),
       ],
     );
   }
+}
