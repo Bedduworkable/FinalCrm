@@ -26,4 +26,6 @@ await FirestoreOptimization.enableOfflinePersistence();
 ```
 
 Other helpers in the file provide paginated lead fetching and denormalized
-write operations that you can integrate as needed.
+write operations. The app now uses these helpers through `DatabaseService`
+methods like `createLeadWithSummary`, `createFollowUpWithSummary`, and
+`fetchLeadsPage` to reduce the number of Firestore reads and writes.

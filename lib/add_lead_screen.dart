@@ -177,16 +177,12 @@ class _AddLeadScreenState extends State<AddLeadScreen> with TickerProviderStateM
         userId: AuthService.currentUserId!,
       );
 
-      final leadId = await DatabaseService.createLead(lead);
-
-      // Add initial remark if provided
-      if (_remarksController.text.trim().isNotEmpty) {
-        await DatabaseService.addRemark(
-          leadId: leadId,
-          content: _remarksController.text.trim(),
-          type: RemarkType.note,
-        );
-      }
+      final leadId = await DatabaseService.createLeadWithSummary(
+        lead,
+        initialRemark: _remarksController.text.trim().isNotEmpty
+            ? _remarksController.text.trim()
+            : null,
+      );
 
       if (mounted) {
         HapticFeedback.heavyImpact();

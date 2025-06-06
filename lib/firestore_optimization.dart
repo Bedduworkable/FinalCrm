@@ -57,7 +57,7 @@ class FirestoreOptimization {
   static bool get hasMoreLeads => _hasMoreLeads;
 
   /// Creates a lead with denormalized summary fields and updates statistics.
-  static Future<void> createLeadWithSummary(
+  static Future<String> createLeadWithSummary(
     Lead lead, {
     String? initialRemark,
   }) async {
@@ -89,10 +89,11 @@ class FirestoreOptimization {
 
     await batch.commit();
     _resetPagination();
+    return leadRef.id;
   }
 
   /// Adds a follow-up and stores a short reference inside the lead document.
-  static Future<void> createFollowUpWithSummary(FollowUp followUp) async {
+  static Future<String> createFollowUpWithSummary(FollowUp followUp) async {
     final batch = _firestore.batch();
 
     final fuRef = _firestore.collection('followUps').doc();
@@ -114,6 +115,7 @@ class FirestoreOptimization {
 
     await batch.commit();
     _resetPagination();
+    return fuRef.id;
   }
 
   /// Debounced search. Results are emitted after the user stops typing.
