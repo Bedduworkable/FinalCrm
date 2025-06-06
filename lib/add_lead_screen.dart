@@ -108,6 +108,16 @@ class _AddLeadScreenState extends State<AddLeadScreen> with TickerProviderStateM
     return colors[item.hashCode % colors.length];
   }
 
+  Future<bool> _checkDuplicateLead(String mobile) async {
+    try {
+      final existingLeads = await DatabaseService.checkLeadExists(mobile);
+      return existingLeads;
+    } catch (e) {
+      print('Error checking duplicate lead: $e');
+      return false;
+    }
+  }
+
   Future<void> _saveLead() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -136,6 +146,24 @@ class _AddLeadScreenState extends State<AddLeadScreen> with TickerProviderStateM
     setState(() => _isLoading = true);
 
     try {
+      // Check for duplicate lead based on mobile number
+      final isDuplicate = await _checkDuplicateLead(_mobileController.text.trim());
+
+      if (isDuplicate) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Lead already exists with this mobile number'),
+              backgroundColor: Color(0xFFDC2626),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
       final lead = Lead(
         id: '',
         name: _nameController.text.trim(),

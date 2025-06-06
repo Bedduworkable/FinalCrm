@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'auth_service.dart';
+import 'database_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +16,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   late Animation<Offset> _slideAnimation;
 
   Map<String, List<String>> _customFields = {};
+  Map<String, List<String>> _originalCustomFields = {}; // Store original for comparison
   bool _isLoading = true;
 
   @override
@@ -55,7 +57,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
     try {
       final fields = await AuthService.getCustomFields();
       setState(() {
-        _customFields = fields;
+        _customFields = Map<String, List<String>>.from(fields);
+        _originalCustomFields = Map<String, List<String>>.from(fields); // Store copy
         _isLoading = false;
       });
     } catch (e) {
@@ -175,12 +178,18 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         // Add the new value to the list
         currentValues.add(result);
 
-        // Update the entire custom fields map
+        // Update the custom fields map
         final updatedFields = Map<String, List<String>>.from(_customFields);
         updatedFields[fieldType] = currentValues;
 
-        await AuthService.updateCustomFields(updatedFields);
-        await _loadCustomFields();
+        // Use the migration method to update
+        await DatabaseService.updateCustomFieldsWithMigration(updatedFields, _originalCustomFields);
+
+        // Update local state
+        setState(() {
+          _customFields = updatedFields;
+          _originalCustomFields = Map<String, List<String>>.from(updatedFields);
+        });
 
         if (mounted) {
           HapticFeedback.heavyImpact();
@@ -248,18 +257,24 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         if (index != -1) {
           currentValues[index] = result;
 
-          // Update the entire custom fields map
+          // Update the custom fields map
           final updatedFields = Map<String, List<String>>.from(_customFields);
           updatedFields[fieldType] = currentValues;
 
-          await AuthService.updateCustomFields(updatedFields);
-          await _loadCustomFields();
+          // Use the migration method to update all leads
+          await DatabaseService.updateCustomFieldsWithMigration(updatedFields, _originalCustomFields);
+
+          // Update local state
+          setState(() {
+            _customFields = updatedFields;
+            _originalCustomFields = Map<String, List<String>>.from(updatedFields);
+          });
 
           if (mounted) {
             HapticFeedback.heavyImpact();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Renamed to $result successfully!'),
+                content: Text('Renamed to $result successfully! All existing leads updated.'),
                 backgroundColor: const Color(0xFF059669),
               ),
             );
@@ -283,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "$value"?'),
+        content: Text('Are you sure you want to delete "$value"?\n\nThis will affect all leads using this ${fieldType.replaceAll('s', '')}.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -306,12 +321,18 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         final currentValues = List<String>.from(_customFields[fieldType] ?? []);
         currentValues.remove(value);
 
-        // Update the entire custom fields map
+        // Update the custom fields map
         final updatedFields = Map<String, List<String>>.from(_customFields);
         updatedFields[fieldType] = currentValues;
 
-        await AuthService.updateCustomFields(updatedFields);
-        await _loadCustomFields();
+        // Use the migration method to update
+        await DatabaseService.updateCustomFieldsWithMigration(updatedFields, _originalCustomFields);
+
+        // Update local state
+        setState(() {
+          _customFields = updatedFields;
+          _originalCustomFields = Map<String, List<String>>.from(updatedFields);
+        });
 
         if (mounted) {
           HapticFeedback.heavyImpact();
@@ -420,7 +441,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.pop(context, true), // Return true to indicate changes
                     icon: const Icon(Icons.arrow_back_ios_new, size: 14, color: Color(0xFF1A1D29)),
                     padding: EdgeInsets.zero,
                   ),

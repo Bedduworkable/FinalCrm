@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'auth_service.dart';
 import 'lead_model.dart';
 
@@ -14,6 +15,22 @@ class DatabaseService {
       _firestore.collection('followUps');
 
   // LEAD OPERATIONS
+
+  // Check if lead exists with the same mobile number
+  static Future<bool> checkLeadExists(String mobile) async {
+    try {
+      final query = await _leadsCollection
+          .where('userId', isEqualTo: AuthService.currentUserId)
+          .where('mobile', isEqualTo: mobile)
+          .limit(1)
+          .get();
+
+      return query.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking lead existence: $e');
+      return false;
+    }
+  }
 
   static Future<String> createLead(Lead lead) async {
     try {
@@ -102,6 +119,54 @@ class DatabaseService {
       });
     } catch (e) {
       print('Error getting leads: $e');
+      return const Stream.empty();
+    }
+  }
+
+  // New method with date filtering
+  static Stream<List<Lead>> getLeadsWithDateFilter({
+    String? statusFilter,
+    List<String>? projectFilters,
+    List<String>? sourceFilters,
+    DateTimeRange? dateRange,
+  }) {
+    try {
+      Query query = _leadsCollection
+          .where('userId', isEqualTo: AuthService.currentUserId);
+
+      // Apply date filter first if provided
+      if (dateRange != null) {
+        query = query
+            .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(dateRange.start))
+            .where('createdAt', isLessThan: Timestamp.fromDate(dateRange.end));
+      }
+
+      // Order by createdAt when using date filter, otherwise by updatedAt
+      if (dateRange != null) {
+        query = query.orderBy('createdAt', descending: true);
+      } else {
+        query = query.orderBy('updatedAt', descending: true);
+      }
+
+      if (statusFilter != null && statusFilter.isNotEmpty) {
+        query = query.where('status', isEqualTo: statusFilter);
+      }
+
+      if (projectFilters != null && projectFilters.isNotEmpty) {
+        query = query.where('projects', arrayContainsAny: projectFilters);
+      }
+
+      if (sourceFilters != null && sourceFilters.isNotEmpty) {
+        query = query.where('sources', arrayContainsAny: sourceFilters);
+      }
+
+      return query.snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          return Lead.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        }).toList();
+      });
+    } catch (e) {
+      print('Error getting leads with date filter: $e');
       return const Stream.empty();
     }
   }
@@ -377,6 +442,99 @@ class DatabaseService {
 
   static String _formatDateTime(DateTime dateTime) {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  // Update custom fields with data migration
+  static Future<void> updateCustomFieldsWithMigration(
+      Map<String, List<String>> newCustomFields,
+      Map<String, List<String>> oldCustomFields,
+      ) async {
+    if (AuthService.currentUserId == null) return;
+
+    try {
+      final batch = _firestore.batch();
+
+      // Check for renamed fields and update all leads accordingly
+      for (String fieldType in ['statuses', 'projects', 'sources']) {
+        final oldValues = oldCustomFields[fieldType] ?? [];
+        final newValues = newCustomFields[fieldType] ?? [];
+
+        // Find renamed values (same position, different name)
+        for (int i = 0; i < oldValues.length && i < newValues.length; i++) {
+          final oldValue = oldValues[i];
+          final newValue = newValues[i];
+
+          if (oldValue != newValue) {
+            // This field was renamed, update all leads using this value
+            await _updateLeadsWithRenamedField(fieldType, oldValue, newValue, batch);
+          }
+        }
+      }
+
+      // Update the user's custom fields
+      final userDocRef = _firestore.collection('users').doc(AuthService.currentUserId);
+      batch.update(userDocRef, {
+        'customFields': newCustomFields,
+      });
+
+      await batch.commit();
+      print('Custom fields updated with data migration completed');
+    } catch (e) {
+      print('Error updating custom fields with migration: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> _updateLeadsWithRenamedField(
+      String fieldType,
+      String oldValue,
+      String newValue,
+      WriteBatch batch,
+      ) async {
+    try {
+      Query query;
+
+      if (fieldType == 'statuses') {
+        // For status, it's a direct field
+        query = _leadsCollection
+            .where('userId', isEqualTo: AuthService.currentUserId)
+            .where('status', isEqualTo: oldValue);
+      } else {
+        // For projects and sources, they are arrays
+        query = _leadsCollection
+            .where('userId', isEqualTo: AuthService.currentUserId)
+            .where(fieldType, arrayContains: oldValue);
+      }
+
+      final snapshot = await query.get();
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        if (fieldType == 'statuses') {
+          // Update status field directly
+          batch.update(doc.reference, {
+            'status': newValue,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          // Update array fields (projects/sources)
+          final currentArray = List<String>.from(data[fieldType] ?? []);
+          final updatedArray = currentArray.map((item) =>
+          item == oldValue ? newValue : item
+          ).toList();
+
+          batch.update(doc.reference, {
+            fieldType: updatedArray,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+
+      print('Updated ${snapshot.docs.length} leads for $fieldType: $oldValue -> $newValue');
+    } catch (e) {
+      print('Error updating leads with renamed field: $e');
+    }
   }
 
   // STATISTICS

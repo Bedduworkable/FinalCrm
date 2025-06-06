@@ -35,7 +35,7 @@ class AuthService {
 
       // Create user profile document in Firestore - THIS IS THE IMPORTANT PART
       final userDoc = {
-        'name': name, // Use the actual name parameter, not displayName
+        'name': name, // Use the actual name parameter passed to the function
         'email': email,
         'createdAt': FieldValue.serverTimestamp(),
         'customFields': {
@@ -168,8 +168,8 @@ class AuthService {
 
       if (!doc.exists) {
         print('User document missing, creating...');
-        // Get the actual name from Firebase Auth or prompt user
-        String userName = _auth.currentUser?.displayName ?? 'User';
+        // Get the actual name from Firebase Auth or use email as fallback
+        String userName = _auth.currentUser?.displayName ?? _auth.currentUser?.email?.split('@')[0] ?? 'User';
         String userEmail = _auth.currentUser?.email ?? '';
 
         print('Creating user document with name: $userName, email: $userEmail');
@@ -274,6 +274,7 @@ class AuthService {
 
       if (name != null) {
         updates['name'] = name;
+        print('Updating user name to: $name');
         // Don't update Firebase Auth displayName to avoid PigeonUserInfo error
         // Just update Firestore document
       }
