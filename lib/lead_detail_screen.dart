@@ -253,7 +253,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
           userId: AuthService.currentUserId!,
         );
 
-        await DatabaseService.createFollowUpWithSummary(followUp);
+        await DatabaseService.createFollowUp(followUp);
 
         if (mounted) {
           HapticFeedback.lightImpact();

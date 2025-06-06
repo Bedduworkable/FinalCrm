@@ -8,7 +8,6 @@ import 'firebase_options.dart';
 import 'auth_service.dart';
 import 'dashboard_screen.dart';
 import 'notification_service.dart';
-import 'firestore_optimization.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +18,6 @@ void main() async {
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Enable Firestore offline persistence for cached reads
-  await FirestoreOptimization.enableOfflinePersistence();
 
 
   runApp(const RealEstateCRM());

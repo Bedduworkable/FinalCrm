@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
 import 'lead_model.dart';
-import 'firestore_optimization.dart';
 
 class DatabaseService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -49,14 +48,6 @@ class DatabaseService {
       print('Error creating lead: $e');
       rethrow;
     }
-  }
-
-  /// Optimized lead creation using denormalized fields and summary updates.
-  static Future<String> createLeadWithSummary(Lead lead, {String? initialRemark}) async {
-    return FirestoreOptimization.createLeadWithSummary(
-      lead,
-      initialRemark: initialRemark,
-    );
   }
 
   static Future<void> updateLead(Lead lead) async {
@@ -323,11 +314,6 @@ class DatabaseService {
     }
   }
 
-  /// Optimized follow-up creation with denormalized lead update and summary.
-  static Future<String> createFollowUpWithSummary(FollowUp followUp) async {
-    return FirestoreOptimization.createFollowUpWithSummary(followUp);
-  }
-
   static Future<void> updateFollowUp(FollowUp followUp) async {
     try {
       await _followUpsCollection.doc(followUp.id).update(followUp.toMap());
@@ -585,23 +571,5 @@ class DatabaseService {
       print('Error getting active follow-ups count: $e');
       return 0;
     }
-  }
-
-  /// Fetches the next page of leads using the optimized pagination helper.
-  static Future<List<Lead>> fetchLeadsPage({bool loadMore = false}) {
-    return FirestoreOptimization.fetchLeadsPage(loadMore: loadMore);
-  }
-
-  /// Whether additional lead pages are available.
-  static bool get hasMoreLeadPages => FirestoreOptimization.hasMoreLeads;
-
-  /// Retrieves leads updated since the last fetch time.
-  static Future<List<Lead>> fetchNewLeads() {
-    return FirestoreOptimization.fetchNewLeads();
-  }
-
-  /// Debounced search helper.
-  static Stream<List<Lead>> searchLeads(String query) {
-    return FirestoreOptimization.searchLeads(query);
   }
 }
