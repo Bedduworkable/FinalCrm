@@ -1,38 +1,226 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="IGPL CRM - Real Estate Lead Management System">
 
-  <!-- iOS meta tags & icons -->
+  <!-- PWA Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="igplrealestatecrm">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="IGPL CRM">
+  <meta name="theme-color" content="#10187B">
 
-  <!-- Favicon -->
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>igplrealestatecrm</title>
+  <title>IGPL CRM - Real Estate Lead Management</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Loading Screen Styles -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #10187B 0%, #374BD3 50%, #6C5CE7 100%);
+      overflow: hidden;
+    }
+    
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      background: linear-gradient(135deg, #10187B 0%, #374BD3 50%, #6C5CE7 100%);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    .loading-container.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+      font-size: 36px;
+    }
+    
+    .app-title {
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    
+    .app-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      font-weight: 400;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      margin-top: 20px;
+      font-weight: 500;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .feature-list {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 40px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .feature-item::before {
+      content: '•';
+      color: #FFD700;
+      font-size: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .feature-list {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+      
+      .app-title {
+        font-size: 24px;
+      }
+      
+      .logo {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+      }
+    }
+    
+    /* Hide loading screen when Flutter loads */
+    .flutter-loaded .loading-container {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+<!-- Loading Screen -->
+<div id="loading-screen" class="loading-container">
+  <div class="logo-container">
+    <div class="logo">🏢</div>
+    <div class="app-title">IGPL CRM</div>
+    <div class="app-subtitle">Real Estate Lead Management</div>
+  </div>
+
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Loading your workspace...</div>
+
+  <div class="feature-list">
+    <div class="feature-item">Lead Pipeline</div>
+    <div class="feature-item">Follow-up Management</div>
+    <div class="feature-item">Real-time Sync</div>
+  </div>
+</div>
+
+<!-- Service Worker Registration -->
+<script>
+  // Error handling for loading
+  window.addEventListener('error', function(e) {
+    console.error('Application error:', e.error);
+    const loadingText = document.querySelector('.loading-text');
+    if (loadingText) {
+      loadingText.textContent = 'Loading failed. Please refresh the page.';
+      loadingText.style.color = '#ff6b6b';
+    }
+  });
+
+  // Show loading screen for at least 2 seconds for better UX
+  let minLoadTime = new Promise(resolve => setTimeout(resolve, 2000));
+
+  window.addEventListener('load', function(ev) {
+    _flutter.loader.load({
+      serviceWorker: {
+        serviceWorkerVersion: serviceWorkerVersion,
+      }
+    }).then(function(engineInitializer) {
+      return engineInitializer.initializeEngine();
+    }).then(function(appRunner) {
+      // Wait for minimum load time, then hide loading screen
+      return minLoadTime.then(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            document.body.classList.add('flutter-loaded');
+          }, 500);
+        }
+        return appRunner.runApp();
+      });
+    }).catch(function(error) {
+      console.error('Failed to initialize Flutter app:', error);
+      const loadingText = document.querySelector('.loading-text');
+      if (loadingText) {
+        loadingText.textContent = 'Failed to load. Please refresh the page.';
+        loadingText.style.color = '#ff6b6b';
+      }
+    });
+  });
+</script>
+
+<!-- Flutter Web Bootstrap -->
+<script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
