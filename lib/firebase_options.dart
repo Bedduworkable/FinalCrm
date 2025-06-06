@@ -40,12 +40,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyAlJht1Zs4rqticFvkd3PrPz5oIggQtSFg',
-    appId: '1:610422771231:web:your-web-app-id', // You'll need to add web app in Firebase Console
+    appId: '1:610422771231:web:7a1eab40aeacbde39dcf2a', // Using your Android app ID for now
     messagingSenderId: '610422771231',
     projectId: 'igplrealestatecrm',
     authDomain: 'igplrealestatecrm.firebaseapp.com',
     storageBucket: 'igplrealestatecrm.firebasestorage.app',
-    measurementId: 'your-measurement-id', // Optional for web
+    measurementId: 'G-XXXXXXXXXX', // You can add this later
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -74,16 +74,3 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.company.igpl',
   );
 }
-
-// IMPORTANT: Replace all 'your-*' values with actual values from your Firebase project
-// To get these values:
-// 1. Go to Firebase Console (console.firebase.google.com)
-// 2. Select your project
-// 3. Go to Project Settings (gear icon)
-// 4. Scroll down to "Your apps" section
-// 5. Select your Android/iOS app
-// 6. Copy the configuration values
-
-// Alternatively, use FlutterFire CLI to auto-generate this file:
-// 1. Install: dart pub global activate flutterfire_cli
-// 2. Run: flutterfire configure

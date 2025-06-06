@@ -176,39 +176,26 @@
 
 <!-- Service Worker Registration -->
 <script>
-  // Error handling for loading
-  window.addEventListener('error', function(e) {
-    console.error('Application error:', e.error);
-    const loadingText = document.querySelector('.loading-text');
-    if (loadingText) {
-      loadingText.textContent = 'Loading failed. Please refresh the page.';
-      loadingText.style.color = '#ff6b6b';
-    }
-  });
-
-  // Show loading screen for at least 2 seconds for better UX
-  let minLoadTime = new Promise(resolve => setTimeout(resolve, 2000));
-
+  // Safely initialize service worker
   window.addEventListener('load', function(ev) {
-    _flutter.loader.load({
+    // Download main.dart.js
+    _flutter.loader.loadEntrypoint({
       serviceWorker: {
-        serviceWorkerVersion: serviceWorkerVersion,
+        serviceWorkerVersion: null, // Set to null to avoid version issues
       }
     }).then(function(engineInitializer) {
       return engineInitializer.initializeEngine();
     }).then(function(appRunner) {
-      // Wait for minimum load time, then hide loading screen
-      return minLoadTime.then(() => {
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-          loadingScreen.classList.add('fade-out');
-          setTimeout(() => {
-            loadingScreen.style.display = 'none';
-            document.body.classList.add('flutter-loaded');
-          }, 500);
-        }
-        return appRunner.runApp();
-      });
+      // Hide loading screen
+      const loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen) {
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+          document.body.classList.add('flutter-loaded');
+        }, 500);
+      }
+      return appRunner.runApp();
     }).catch(function(error) {
       console.error('Failed to initialize Flutter app:', error);
       const loadingText = document.querySelector('.loading-text');
@@ -219,8 +206,5 @@
     });
   });
 </script>
-
-<!-- Flutter Web Bootstrap -->
-<script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
