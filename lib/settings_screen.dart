@@ -71,13 +71,13 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   Color _getFieldColor(String fieldType) {
     switch (fieldType) {
       case 'statuses':
-        return const Color(0xFF6C5CE7);
+        return const Color(0xFF10187B);
       case 'projects':
-        return const Color(0xFF00CEC9);
+        return const Color(0xFF059669);
       case 'sources':
-        return const Color(0xFFFF7675);
+        return const Color(0xFFDC2626);
       default:
-        return const Color(0xFF74B9FF);
+        return const Color(0xFF374151);
     }
   }
 
@@ -161,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
 
     if (result != null && result.isNotEmpty) {
       // Check for duplicates
-      final currentValues = _customFields[fieldType] ?? [];
+      final currentValues = List<String>.from(_customFields[fieldType] ?? []);
       if (currentValues.contains(result)) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -172,7 +172,14 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       }
 
       try {
-        await AuthService.addCustomFieldValue(fieldType, result);
+        // Add the new value to the list
+        currentValues.add(result);
+
+        // Update the entire custom fields map
+        final updatedFields = Map<String, List<String>>.from(_customFields);
+        updatedFields[fieldType] = currentValues;
+
+        await AuthService.updateCustomFields(updatedFields);
         await _loadCustomFields();
 
         if (mounted) {
@@ -180,7 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('$result added successfully!'),
-              backgroundColor: const Color(0xFF84D187),
+              backgroundColor: const Color(0xFF059669),
             ),
           );
         }
@@ -240,7 +247,12 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         final index = currentValues.indexOf(oldValue);
         if (index != -1) {
           currentValues[index] = result;
-          await AuthService.updateCustomFields(fieldType, currentValues);
+
+          // Update the entire custom fields map
+          final updatedFields = Map<String, List<String>>.from(_customFields);
+          updatedFields[fieldType] = currentValues;
+
+          await AuthService.updateCustomFields(updatedFields);
           await _loadCustomFields();
 
           if (mounted) {
@@ -248,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Renamed to $result successfully!'),
-                backgroundColor: const Color(0xFF84D187),
+                backgroundColor: const Color(0xFF059669),
               ),
             );
           }
@@ -263,6 +275,61 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
     }
 
     controller.dispose();
+  }
+
+  Future<void> _deleteField(String fieldType, String value) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Item'),
+        content: Text('Are you sure you want to delete "$value"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final currentValues = List<String>.from(_customFields[fieldType] ?? []);
+        currentValues.remove(value);
+
+        // Update the entire custom fields map
+        final updatedFields = Map<String, List<String>>.from(_customFields);
+        updatedFields[fieldType] = currentValues;
+
+        await AuthService.updateCustomFields(updatedFields);
+        await _loadCustomFields();
+
+        if (mounted) {
+          HapticFeedback.heavyImpact();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$value deleted successfully!'),
+              backgroundColor: const Color(0xFFDC2626),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting item: $e')),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _signOut() async {
@@ -305,7 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFFBFBFD),
       body: SafeArea(
         child: Column(
           children: [
@@ -329,53 +396,90 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF6C5CE7), Color(0xFF74B9FF)],
-        ),
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F3F4), width: 1)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Navigation row
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 20,
+              right: 20,
+              bottom: 8,
+            ),
+            child: Row(
               children: [
-                Text(
-                  'Settings',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBFBFD),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 14, color: Color(0xFF1A1D29)),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
-                Text(
-                  'Customize your CRM',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
-                  ),
-                ),
+                const Spacer(),
               ],
             ),
           ),
+
+          // Header section with cream background
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(12),
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAF9F7),
             ),
-            child: const Icon(
-              Icons.settings_rounded,
-              color: Colors.white,
-              size: 24,
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10187B),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.settings_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF1A1D29),
+                          height: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Customize your CRM',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF6B7080),
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -405,16 +509,18 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         const Text(
           'Custom Fields',
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1D29),
           ),
         ),
         const SizedBox(height: 8),
-        Text(
+        const Text(
           'Manage your lead pipeline settings',
           style: TextStyle(
-            color: Colors.grey.shade600,
+            color: Color(0xFF6B7080),
             fontSize: 14,
+            fontWeight: FontWeight.w400,
           ),
         ),
         const SizedBox(height: 20),
@@ -429,112 +535,116 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
     final title = _getFieldTitle(fieldType);
     final description = _getFieldDescription(fieldType);
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _addNewField(fieldType),
-                  icon: Icon(Icons.add_rounded, color: color),
-                  tooltip: 'Add new ${fieldType.replaceAll('s', '')}',
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: values.map((value) {
-                return GestureDetector(
-                  onTap: () => _renameField(fieldType, value),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: color.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          value,
-                          style: TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.edit_rounded,
-                          size: 14,
-                          color: color.withOpacity(0.7),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            if (values.isEmpty)
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFF1F3F4), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: Row(
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.grey.shade500, size: 16),
-                    const SizedBox(width: 8),
                     Text(
-                      'No ${fieldType.replaceAll('s', '')}s added yet',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1A1D29),
+                      ),
+                    ),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        color: Color(0xFF6B7080),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ],
                 ),
               ),
-          ],
-        ),
+              IconButton(
+                onPressed: () => _addNewField(fieldType),
+                icon: Icon(Icons.add_rounded, color: color, size: 18),
+                tooltip: 'Add new ${fieldType.replaceAll('s', '')}',
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: values.map((value) {
+              return GestureDetector(
+                onTap: () => _renameField(fieldType, value),
+                onLongPress: () => _deleteField(fieldType, value),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        value,
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.edit_rounded,
+                        size: 12,
+                        color: color.withOpacity(0.7),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          if (values.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBFBFD),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFF1F3F4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: const Color(0xFF9CA3AF), size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    'No ${fieldType.replaceAll('s', '')}s added yet',
+                    style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -546,14 +656,18 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         const Text(
           'Account',
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1D29),
           ),
         ),
         const SizedBox(height: 20),
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFF1F3F4), width: 1),
+          ),
           child: Column(
             children: [
               FutureBuilder<Map<String, dynamic>?>(
@@ -564,26 +678,44 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                   final email = profile?['email'] ?? '';
 
                   return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF6C5CE7).withOpacity(0.1),
-                      child: Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF6C5CE7),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10187B),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
                     title: Text(
                       name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                        color: Color(0xFF1A1D29),
+                      ),
                     ),
-                    subtitle: Text(email),
-                    trailing: const Icon(Icons.account_circle_outlined),
+                    subtitle: Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF6B7080),
+                      ),
+                    ),
+                    trailing: const Icon(Icons.account_circle_outlined, color: Color(0xFF6B7080)),
                   );
                 },
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, color: Color(0xFFF1F3F4)),
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -591,22 +723,35 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                  child: const Icon(Icons.info_outline, color: Colors.blue, size: 16),
                 ),
-                title: const Text('App Information'),
-                subtitle: const Text('Real Estate CRM v1.0.0'),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                title: const Text(
+                  'App Information',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF1A1D29),
+                  ),
+                ),
+                subtitle: const Text(
+                  'IGPL CRM v1.0.0',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7080),
+                  ),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF6B7080)),
                 onTap: () {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       title: const Text('App Information'),
                       content: const Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Real Estate CRM'),
+                          Text('IGPL CRM'),
                           Text('Version: 1.0.0'),
                           SizedBox(height: 8),
                           Text('A simple and effective CRM for real estate professionals.'),
@@ -622,7 +767,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                   );
                 },
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, color: Color(0xFFF1F3F4)),
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -630,11 +775,24 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                     color: Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.exit_to_app_rounded, color: Colors.red, size: 20),
+                  child: const Icon(Icons.exit_to_app_rounded, color: Colors.red, size: 16),
                 ),
-                title: const Text('Sign Out'),
-                subtitle: const Text('Sign out of your account'),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                title: const Text(
+                  'Sign Out',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF1A1D29),
+                  ),
+                ),
+                subtitle: const Text(
+                  'Sign out of your account',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7080),
+                  ),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF6B7080)),
                 onTap: _signOut,
               ),
             ],

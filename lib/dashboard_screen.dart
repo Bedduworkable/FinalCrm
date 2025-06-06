@@ -32,6 +32,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   int _activeFollowUpsCount = 0;
   Map<String, int> _leadStats = {};
 
+  // Premium color palette - matching other screens
+  static const Color primaryBlue = Color(0xFF10187B);
+  static const Color accentGold = Color(0xFFFFD700);
+  static const Color backgroundLight = Color(0xFFF8F9FA);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color creamBackground = Color(0xFFFAF9F7);
+  static const Color textPrimary = Color(0xFF1A1D29);
+  static const Color textSecondary = Color(0xFF6B7080);
+  static const Color textTertiary = Color(0xFF9CA3AF);
+
   @override
   void initState() {
     super.initState();
@@ -93,22 +103,91 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   Color _getProjectColor(String project) {
     final colors = [
-      const Color(0xFF6C5CE7),
-      const Color(0xFF74B9FF),
-      const Color(0xFF00CEC9),
-      const Color(0xFF55A3FF),
-      const Color(0xFFFF7675),
-      const Color(0xFFFF6B9D),
-      const Color(0xFFFFBE0B),
-      const Color(0xFF84D187),
+      primaryBlue,
+      const Color(0xFF059669),
+      const Color(0xFFDC2626),
+      const Color(0xFFEA580C),
+      const Color(0xFF7C3AED),
+      const Color(0xFF0891B2),
+      accentGold,
+      const Color(0xFF374151),
     ];
     return colors[project.hashCode % colors.length];
+  }
+
+  Future<void> _showSetNameDialog() async {
+    final controller = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Set Your Name'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Your Name',
+            hintText: 'Enter your full name',
+            border: OutlineInputBorder(),
+          ),
+          textCapitalization: TextCapitalization.words,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                Navigator.pop(context, controller.text.trim());
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryBlue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      try {
+        await AuthService.updateUserProfile(name: result);
+        setState(() {}); // Refresh the UI
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Name updated to $result'),
+              backgroundColor: const Color(0xFF059669),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error updating name: $e'),
+              backgroundColor: const Color(0xFFDC2626),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
+
+    controller.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
@@ -145,11 +224,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               _loadStatistics();
             }
           },
-          backgroundColor: const Color(0xFF6C5CE7),
+          backgroundColor: primaryBlue,
           foregroundColor: Colors.white,
-          elevation: 8,
+          elevation: 4,
           icon: const Icon(Icons.add_rounded),
-          label: const Text('Add Lead', style: TextStyle(fontWeight: FontWeight.w600)),
+          label: const Text('Add Lead', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
         ),
       ),
     );
@@ -158,11 +237,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6C5CE7), Color(0xFF74B9FF)],
+          colors: [primaryBlue, const Color(0xFF374BD3)],
         ),
       ),
       child: Column(
@@ -170,32 +249,54 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.white24,
-                child: Icon(Icons.home_work_rounded, color: Colors.white, size: 28),
-              ),
-              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Pipeline',
+                      'IGPL CRM',
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
                     FutureBuilder<Map<String, dynamic>?>(
                       future: AuthService.getUserProfile(),
                       builder: (context, snapshot) {
+                        print('User profile data: ${snapshot.data}'); // Debug print
                         final name = snapshot.data?['name'] ?? 'User';
+
+                        // If name is 'User', show a button to set name
+                        if (name == 'User') {
+                          return GestureDetector(
+                            onTap: () => _showSetNameDialog(),
+                            child: Row(
+                              children: [
+                                const Text(
+                                  'Hello, User',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.edit,
+                                  size: 12,
+                                  color: Colors.white70,
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
                         return Text(
                           'Hello, $name',
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
                             color: Colors.white70,
                           ),
                         );
@@ -214,7 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 },
                 icon: Stack(
                   children: [
-                    const Icon(Icons.schedule_rounded, color: Colors.white, size: 28),
+                    const Icon(Icons.schedule_rounded, color: Colors.white, size: 24),
                     if (_activeFollowUpsCount > 0)
                       Positioned(
                         right: 0,
@@ -233,8 +334,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             '$_activeFollowUpsCount',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -249,7 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 icon: AnimatedRotation(
                   turns: _showFilters ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 300),
-                  child: const Icon(Icons.tune_rounded, color: Colors.white, size: 28),
+                  child: const Icon(Icons.tune_rounded, color: Colors.white, size: 24),
                 ),
               ),
               // Settings Button
@@ -260,7 +361,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     MaterialPageRoute(builder: (context) => const SettingsScreen()),
                   );
                 },
-                icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 28),
+                icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 24),
               ),
             ],
           ),
@@ -287,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     const SizedBox(width: 8),
                     Text(
                       '$_activeFollowUpsCount pending follow-ups',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 13),
                     ),
                     const SizedBox(width: 4),
                     const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 12),
@@ -377,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87)),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w500, color: textPrimary, fontSize: 14)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -393,17 +494,18 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF6C5CE7) : Colors.grey.shade100,
+                  color: isSelected ? primaryBlue : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected ? const Color(0xFF6C5CE7) : Colors.grey.shade300,
+                    color: isSelected ? primaryBlue : Colors.grey.shade300,
                   ),
                 ),
                 child: Text(
                   option,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? Colors.white : textPrimary,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -443,17 +545,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 Text(
                   entry.value.toString(),
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     color: color,
                   ),
                 ),
                 Text(
                   entry.key,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: color.withOpacity(0.8),
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -586,9 +688,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   child: Text(
                     status,
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       color: color,
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -602,8 +704,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     leads.length.toString(),
                     style: TextStyle(
                       color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -651,21 +753,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         child: Card(
-          elevation: 2,
-          shadowColor: Colors.black.withOpacity(0.1),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 1,
+          shadowColor: Colors.black.withOpacity(0.06),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white,
-                  Colors.grey.shade50,
-                ],
-              ),
+              borderRadius: BorderRadius.circular(12),
+              color: cardWhite,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,13 +768,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 Row(
                   children: [
                     CircleAvatar(
-                      radius: 20,
+                      radius: 18,
                       backgroundColor: _getProjectColor(lead.name).withOpacity(0.1),
                       child: Text(
                         lead.name.isNotEmpty ? lead.name[0].toUpperCase() : '?',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           color: _getProjectColor(lead.name),
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -691,8 +787,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           Text(
                             lead.name,
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                              color: textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -700,9 +797,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           if (lead.mobile.isNotEmpty)
                             Text(
                               lead.mobile,
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 12,
+                              style: const TextStyle(
+                                color: textSecondary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                         ],
@@ -762,9 +860,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       return Text(
                         'No upcoming follow-ups',
                         style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
+                          color: textTertiary,
+                          fontSize: 11,
                           fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w400,
                         ),
                       );
                     }
@@ -776,16 +875,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       children: [
                         Icon(
                           Icons.access_time_rounded,
-                          size: 14,
-                          color: Colors.grey.shade600,
+                          size: 12,
+                          color: textTertiary,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             'Next: $timeString',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
+                            style: const TextStyle(
+                              color: textTertiary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -815,8 +915,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         text,
         style: TextStyle(
           color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+          fontSize: 9,
+          fontWeight: FontWeight.w400,
         ),
       ),
     );
